@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Use Case Intake</title>
+<style>
+  :root{ --orange:#FE5000; --black:#111111; --grey-d:#4a4a4a; --grey-m:#8a8a8a; --grey-l:#d9d9d9; --grey-bg:#f5f5f5; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:Arial, Helvetica, sans-serif; color:var(--black); background:#fff; font-size:15px; line-height:1.45; }
+  header{ border-bottom:3px solid var(--orange); padding:18px 28px; display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px;}
+  header h1{ font-size:20px; font-weight:bold; letter-spacing:.2px; }
+  header h1 span{ color:var(--orange); }
+  header .sub{ color:var(--grey-m); font-size:12px; }
+  nav{ display:flex; gap:2px; padding:0 28px; border-bottom:1px solid var(--grey-l); }
+  nav button{ background:none; border:none; border-bottom:3px solid transparent; padding:12px 18px; font-family:inherit; font-size:14px; color:var(--grey-d); cursor:pointer; }
+  nav button.active{ color:var(--black); font-weight:bold; border-bottom-color:var(--orange); }
+  main{ max-width:980px; margin:0 auto; padding:26px 28px 80px; }
+  h2{ font-size:17px; margin-bottom:4px; }
+  h2 .accent{ color:var(--orange); }
+  h3{ font-size:14px; margin:18px 0 8px; text-transform:uppercase; letter-spacing:.6px; color:var(--grey-d); }
+  p.lead{ color:var(--grey-d); margin-bottom:18px; }
+  .step-indicator{ display:flex; gap:6px; margin:14px 0 22px; flex-wrap:wrap;}
+  .step-indicator div{ font-size:11px; padding:5px 10px; border:1px solid var(--grey-l); color:var(--grey-m); }
+  .step-indicator div.done{ border-color:var(--grey-d); color:var(--grey-d); }
+  .step-indicator div.cur{ border-color:var(--orange); color:var(--black); font-weight:bold; }
+  label.fld{ display:block; font-size:13px; font-weight:bold; margin:14px 0 4px; }
+  label.fld .opt{ font-weight:normal; color:var(--grey-m); }
+  input[type=text], textarea, select{ width:100%; padding:9px 10px; border:1px solid var(--grey-l); font-family:inherit; font-size:14px; }
+  input:focus, textarea:focus, select:focus{ outline:none; border-color:var(--orange); }
+  textarea{ min-height:70px; resize:vertical; }
+  .choice-group{ display:flex; flex-direction:column; gap:6px; margin-top:6px; }
+  .choice{ border:1px solid var(--grey-l); padding:10px 12px; cursor:pointer; font-size:14px; display:flex; gap:10px; align-items:flex-start; }
+  .choice:hover{ border-color:var(--grey-d); }
+  .choice.sel{ border-color:var(--orange); border-width:2px; padding:9px 11px; }
+  .choice .tick{ width:14px; height:14px; border:1px solid var(--grey-m); border-radius:50%; flex:none; margin-top:2px; }
+  .choice.multi .tick{ border-radius:0; }
+  .choice.sel .tick{ background:var(--orange); border-color:var(--orange); }
+  .btnrow{ display:flex; justify-content:space-between; margin-top:28px; gap:10px; flex-wrap:wrap; }
+  button.primary, button.ghost, button.small{ font-family:inherit; cursor:pointer; font-size:14px; }
+  button.primary{ background:var(--black); color:#fff; border:none; padding:11px 26px; }
+  button.primary:hover{ background:var(--orange); }
+  button.primary:disabled{ background:var(--grey-l); cursor:not-allowed; }
+  button.ghost{ background:none; border:1px solid var(--grey-m); color:var(--grey-d); padding:11px 20px; }
+  button.small{ background:none; border:1px solid var(--grey-m); color:var(--grey-d); padding:6px 12px; font-size:12px; }
+  button.small:hover{ border-color:var(--orange); color:var(--black); }
+  .routing-box{ border-left:4px solid var(--orange); background:var(--grey-bg); padding:18px 20px; margin:20px 0; }
+  .routing-box h4{ font-size:15px; margin-bottom:6px; }
+  .routing-box p{ font-size:13px; color:var(--grey-d); }
+  .crit{ border-bottom:1px solid var(--grey-l); padding:18px 0; }
+  .crit .cq{ font-size:14px; font-weight:bold; }
+  .crit .cname{ font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--orange); margin-bottom:3px; }
+  .anchors{ display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+  .anchor{ flex:1 1 150px; border:1px solid var(--grey-l); padding:8px; cursor:pointer; min-width:140px; }
+  .anchor:hover{ border-color:var(--grey-d); }
+  .anchor.sel{ border:2px solid var(--orange); padding:7px; }
+  .anchor .num{ font-weight:bold; font-size:15px; }
+  .anchor.sel .num{ color:var(--orange); }
+  .anchor .txt{ font-size:11.5px; color:var(--grey-d); margin-top:3px; }
+  table{ border-collapse:collapse; width:100%; font-size:13px; margin-top:10px; }
+  th{ text-align:left; border-bottom:2px solid var(--black); padding:8px 8px; font-size:11px; text-transform:uppercase; letter-spacing:.4px; }
+  td{ border-bottom:1px solid var(--grey-l); padding:8px 8px; vertical-align:top; background:transparent; }
+  tr:hover td{ background:var(--grey-bg); }
+  .pill{ display:inline-block; font-size:10px; text-transform:uppercase; letter-spacing:.5px; padding:2px 8px; border:1px solid; }
+  .pill.fast{ color:var(--grey-d); border-color:var(--grey-m); }
+  .pill.full{ color:var(--orange); border-color:var(--orange); }
+  .muted{ color:var(--grey-m); font-size:12px; }
+  .warn{ color:var(--orange); font-size:12px; font-weight:bold; }
+  .toolbar{ display:flex; gap:8px; margin:14px 0; flex-wrap:wrap; align-items:center;}
+  .footer-note{ margin-top:34px; padding-top:14px; border-top:1px solid var(--grey-l); font-size:12px; color:var(--grey-m); }
+  @media (max-width:640px){ .anchors{flex-direction:column;} .anchor{min-width:0;} }
+</style>
+</head>
+<body>
+<header>
+  <h1>AI Use Case <span>Intake</span></h1>
+  <div class="sub">Enterprise AI Enablement &middot; Prototype v0.4 &middot; local data only</div>
+</header>
+<nav>
+  <button id="nav-intake" class="active" onclick="go('intake')">New Intake</button>
+  <button id="nav-mine" onclick="go('mine')">My Submissions</button>
+  <button id="nav-instruction" onclick="go('instruction')">Instruction</button>
+</nav>
+<main id="main"></main>
+
+<script>
+/* ============================= SUBMITTER EDITION =============================
+   This edition collects answers only. Evaluation scoring, category weighting,
+   and portfolio ranking are performed by the review team in a separate,
+   internal tool. No weighting or scoring logic exists in this file. */
+const CATS = [
+  { id:'SA', name:'Strategic Alignment', exp:'How well does this opportunity advance the core mission of the organization?' },
+  { id:'BI', name:'Business Impact & Value', exp:'What tangible and intangible value do we expect to realize?' },
+  { id:'FR', name:'Feasibility & Readiness', exp:'Can we realistically execute this, and what are the dependencies?' },
+  { id:'RE', name:'Risk & Safeguards', exp:'What are the potential downsides — and should we do this even if we can? Higher = safer.' }
+];
+
+/* Approved question set (Elle, 07.12.26): plain language, end-user persona.
+   Full 1-5 scale with every value explained; 0 = Not sure / NA on all questions. */
+const NOTSURE = 'Not sure yet';
+const CRITERIA = [
+  /* Strategic Alignment */
+  { id:'brand', cat:'SA', name:'Brand & Reputation',
+    q:'Would this improve how customers or the public see our company — more consistent, more trustworthy, more visible?',
+    a:{0:NOTSURE,
+       1:'No real effect on how the company is seen',
+       2:'Small consistency improvements in a niche area',
+       3:'Keeps things consistent or improves quality in a smaller channel',
+       4:'Clear improvement across several channels, short of transforming a major touchpoint',
+       5:'Noticeably lifts how the company is seen, or transforms a major customer touchpoint'} },
+  { id:'diff', cat:'SA', name:'Competitive Edge',
+    q:'Would this give us something most competitors don\'t have?',
+    a:{0:NOTSURE,
+       1:'Catching up — most competitors already do this',
+       2:'Ahead of slower competitors; even with the leaders',
+       3:'A modest edge — helpful, but others could copy it quickly',
+       4:'A strong advantage likely to hold for a year or two',
+       5:'A real advantage — hard for competitors to copy'} },
+  { id:'comp', cat:'SA', name:'Building Our Own AI Strength',
+    q:'Would this help the company build lasting AI skills and know-how of our own?',
+    a:{0:NOTSURE,
+       1:'One-off tool — we learn little from using it',
+       2:'A few people gain skills, but nothing the company keeps',
+       3:'Builds some know-how and better ways of working',
+       4:'Creates reusable pieces and develops some of our own people',
+       5:'Creates a reusable capability and develops our own talent and know-how'} },
+  { id:'exec', cat:'SA', name:'Leadership Goal Alignment',
+    q:'Does this support a goal leadership has publicly committed to?',
+    a:{0:NOTSURE,
+       1:'No clear link to any stated goal',
+       2:'Loosely related to a department goal',
+       3:'Supports a goal owned by a director or VP',
+       4:'Supports a stated executive goal, though not a top priority',
+       5:'Directly supports a top company priority stated by senior leadership'} },
+  /* Business Impact - Quantitative */
+  { id:'rev', cat:'BI', name:'Revenue & Demand',
+    q:'Could this increase revenue or demand — more sales, better leads, more loyal customers?',
+    a:{0:'Not sure / too early to estimate',
+       1:'Little or very uncertain return (under $100K a year)',
+       2:'Modest return ($100–250K a year)',
+       3:'Meaningful return ($250–500K a year, or a 5–10% lift in a key sales metric)',
+       4:'Strong return ($500K–1M a year, or a 10–15% lift)',
+       5:'Major return (over $1M a year, or a 15%+ lift in a key sales metric)'} },
+  { id:'cost', cat:'BI', name:'Cost Savings',
+    q:'Would this reduce what we spend on outside help — agencies, contractors, software?',
+    a:{0:'Not sure / too early to estimate',
+       1:'Small savings (under $50K a year)',
+       2:'Modest savings ($50–100K a year)',
+       3:'Solid savings ($100–250K a year)',
+       4:'Strong savings ($250–500K a year)',
+       5:'Major savings (over $500K a year)'} },
+  { id:'eff', cat:'BI', name:'Time & Productivity',
+    q:'How much total working time would this save across everyone who does this work — or how much faster would it make an important process?',
+    a:{0:'Not sure / too early to estimate',
+       1:'Small time savings for a few people (under 5%)',
+       2:'Noticeable savings (5–15%) for a team',
+       3:'Around 20% total time savings for a team or function',
+       4:'Major savings (20–40%) — approaching one full-time person\'s worth of work',
+       5:'40%+ improvement — more than one full-time person\'s worth a year, or dramatically speeds up a core process'} },
+  /* Business Impact - Qualitative */
+  { id:'cx', cat:'BI', name:'Customer Benefit',
+    q:'Would customers directly notice and benefit from this?',
+    a:{0:NOTSURE,
+       1:'No — customers wouldn\'t see a difference',
+       2:'Indirectly — we get faster or better internally, customers feel it eventually',
+       3:'Somewhat — improves a smaller part of their experience',
+       4:'Clearly — improves an important part of their experience',
+       5:'Yes — clearly improves a moment that matters most to customers'} },
+  { id:'emp', cat:'BI', name:'Helping People Do Better Work',
+    q:'Would this free people from repetitive work so they can focus on work that needs human judgment?',
+    a:{0:NOTSURE,
+       1:'Automates one small task; day-to-day work barely changes',
+       2:'Takes some routine work off people\'s plates',
+       3:'Removes a big chunk of manual, repetitive work',
+       4:'Substantially helps — frees 10–25% of people\'s time for higher-value work',
+       5:'Works like a skilled assistant — frees a quarter or more of people\'s time'} },
+  { id:'dec', cat:'BI', name:'Better Decisions',
+    q:'Would this help managers make better or faster decisions?',
+    a:{0:NOTSURE,
+       1:'Slightly better reporting on what we already know',
+       2:'Somewhat faster access to the numbers we use today',
+       3:'Faster, better day-to-day decisions (like where to put budget this week)',
+       4:'Better day-to-day decisions plus some ability to see what\'s coming',
+       5:'Unlocks decisions we can\'t make today (spotting new markets, predicting results in advance)'} },
+  /* Feasibility & Readiness */
+  { id:'data', cat:'FR', name:'Information Readiness',
+    q:'Is the information this would need easy to get, well organized, and okay for us to use?',
+    a:{0:'Not sure what information it needs',
+       1:'It doesn\'t exist, is very messy, or we may not be allowed to use it',
+       2:'Big gaps — would take more than half a year to get in shape',
+       3:'It exists, but it\'s scattered across systems and needs months of cleanup',
+       4:'Mostly ready — minor cleanup or permissions work left',
+       5:'Ready to go — organized, in one place, and cleared for use'} },
+  { id:'tech', cat:'FR', name:'Proven or Invented',
+    q:'Does a solution like this already exist, or would it have to be invented?',
+    a:{0:NOTSURE,
+       1:'Would need to be invented — experimental, might not work',
+       2:'Mostly custom-built, with some unproven parts',
+       3:'Exists in part — needs significant custom work to fit our needs',
+       4:'Exists — just needs some setup and tailoring',
+       5:'Ready-made — solutions like this can be bought or switched on today'} },
+  { id:'integ', cat:'FR', name:'Fit With Current Tools',
+    q:'How easily would this fit alongside the tools your team already uses?',
+    a:{0:NOTSURE,
+       1:'Poorly — we\'d have to replace or rework tools we rely on',
+       2:'With substantial effort — several systems would need custom connections',
+       3:'With effort — our tech team would need to build connections between systems',
+       4:'Fairly easily — small amount of connection work needed',
+       5:'Easily — designed to plug into common workplace tools with little setup'} },
+  { id:'res', cat:'FR', name:'People to Build It',
+    q:'Do we have people with the skills and time to build and run this?',
+    a:{0:NOTSURE,
+       1:'No — we\'d need to hire rare outside specialists',
+       2:'Missing key skills — would lean heavily on outside partners',
+       3:'Partly — the right people exist but are stretched thin; other work would slip',
+       4:'Mostly — our team can do it with modest outside support',
+       5:'Yes — our teams (or a partner we know) can take this on now'} },
+  { id:'ttv', cat:'FR', name:'Time To Results',
+    q:'How soon would we start seeing results?',
+    a:{0:'Not sure when',
+       1:'More than a year away, and hard to predict',
+       2:'About a year, with moderate confidence',
+       3:'Within a year',
+       4:'Within six months',
+       5:'Within a few months (one quarter)'} },
+  /* Risk & Safeguards (higher = safer) */
+  { id:'safety', cat:'RE', name:'Reputation Protection',
+    q:'If the AI produced something wrong or embarrassing, who would see it?',
+    a:{0:NOTSURE,
+       1:'The public — AI content would go out with little human review',
+       2:'A wide audience — some review happens, but mistakes could slip through',
+       3:'A limited audience — people check outputs, but a mistake could still embarrass us',
+       4:'Mostly internal — anything external gets spot-checked',
+       5:'Only internal teams — or a person reviews everything before it goes out'} },
+  { id:'bias', cat:'RE', name:'Fairness',
+    q:'Could this treat some groups of people unfairly?',
+    a:{0:NOTSURE,
+       1:'Yes — it makes or shapes decisions about people, with real fairness risk',
+       2:'Possibly — it uses personal information in a fairly sensitive area',
+       3:'Possibly — but in a lower-stakes area we could monitor',
+       4:'Unlikely — little personal information involved, low-stakes decisions',
+       5:'Very unlikely — it doesn\'t work with information about individuals'} },
+  { id:'priv', cat:'RE', name:'Personal Data & Ownership',
+    q:'Would this use personal information about customers or employees — and is what it creates clearly ours to use?',
+    a:{0:NOTSURE,
+       1:'Uses sensitive personal information, or data we may not have rights to',
+       2:'Uses personal information; unclear whether we\'re covered',
+       3:'Uses masked/anonymized personal information; legal would need to review',
+       4:'Designed to be compliant; minor legal review remaining',
+       5:'Uses only our own company data with no personal details; clearly ours to use'} },
+  { id:'adopt', cat:'RE', name:'Will People Use It',
+    q:'Would the people who\'d use this day-to-day actually welcome it?',
+    a:{0:NOTSURE,
+       1:'Likely resisted — threatens work people take pride in, or forces big unpopular changes',
+       2:'Hesitant — meaningful pushback expected from key users',
+       3:'Mixed — needs training and new habits, but the benefit is clear',
+       4:'Positive — most would use it after light training',
+       5:'Welcomed — removes a task people dislike, fits how they already work'} }
+];
+
+const DEPTS = ['Marketing','Sales & Commerce','Product & Merchandising','Design & Creative','Supply Chain & Logistics','Finance','Human Resources','Legal & Compliance','Technology','Operations','Customer Service','Other'];
+
+/* Triage question options */
+const TRIAGE = {
+  beneficiary:[
+    {v:'individual', t:'Just me', d:'A personal productivity improvement'},
+    {v:'group', t:'My team or workgroup', d:'A shared workflow for a small group'},
+    {v:'department', t:'My whole department or function', d:'A department-level capability'},
+    {v:'enterprise', t:'Multiple departments or the enterprise', d:'A cross-functional or company-wide capability'}
+  ],
+  workType:[
+    {v:'copilot', t:'Personal assistant / copilot agent', d:'Summarizing, drafting, research, meeting prep using approved AI tools'},
+    {v:'automation', t:'Workflow automation with approved tools', d:'Automating steps using sanctioned low-code/AI features'},
+    {v:'newbuild', t:'A new application, model, or system', d:'Something that does not exist today'},
+    {v:'enhance', t:'Enhancement to an existing enterprise system', d:'Adding AI capability to a system others depend on'}
+  ],
+  buildPath:[
+    {v:'self', t:'Yes — fully self-service', d:'We can build it with tools we already have access to'},
+    {v:'lightIT', t:'Mostly — with light IT support', d:'Just need access, permissions, or minor configuration'},
+    {v:'itbuild', t:'No — requires IT / tech org development', d:'Needs engineering, data, or platform teams to build'},
+    {v:'external', t:'No — requires an external agency or vendor', d:'Needs outside development or a purchased solution'}
+  ],
+  sensitivity:[
+    {v:'customer', t:'Customer / consumer data'},
+    {v:'regulated', t:'Confidential or regulated data'},
+    {v:'public', t:'Public-facing content'},
+    {v:'shared', t:'Systems other teams depend on'},
+    {v:'none', t:'None of these'}
+  ]
+};
+
+/* ============================= ROUTING ============================= */
+function routeOf(triage){
+  const smallScope = ['individual','group'].includes(triage.beneficiary);
+  const selfBuild = ['self','lightIT'].includes(triage.buildPath);
+  const clean = triage.sensitivity.length===1 && triage.sensitivity[0]==='none';
+  if(smallScope && selfBuild && clean) return {route:'fast', why:'Individual/group scope, self-service build, no sensitive exposure. Registered for visibility — no evaluation questionnaire required.'};
+  if(!selfBuild) return {route:'full', why:'Requires IT or external agency build. The evaluation questionnaire applies.'};
+  if(!clean) return {route:'full', why:'Touches customer/regulated data, public content, or shared systems. A risk review applies even though it is self-buildable.'};
+  return {route:'full', why:'Department- or enterprise-level scope. The evaluation questionnaire applies.'};
+}
+function zeroCount(scores){ return CRITERIA.filter(c=> scores && scores[c.id]===0).length; }
+
+/* ============================= STATE & STORAGE ============================= */
+const LSKEY='aiIntakeSubmissions_v1';
+let state = load();
+function load(){
+  try{ const s = JSON.parse(localStorage.getItem(LSKEY)); if(s && s.subs) return s; }catch(e){}
+  return { subs:[] };
+}
+function save(){ localStorage.setItem(LSKEY, JSON.stringify(state)); }
+
+/* wizard draft */
+let draft = null;
+function newDraft(){
+  draft = { step:0, basics:{submitter:'',dept:'',title:'',desc:''},
+    triage:{beneficiary:null, workType:null, buildPath:null, sensitivity:[]},
+    scores:{} };
+}
+
+/* ============================= RENDERING ============================= */
+const $ = id => document.getElementById(id);
+let view='intake';
+let detailId=null;
+function go(v){ view=v; detailId=null; document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active')); $('nav-'+v).classList.add('active'); render(); }
+function openDetail(id){ detailId=id; view='detail'; render(); }
+function render(){
+  if(view==='intake') renderIntake();
+  else if(view==='mine') renderMine();
+  else if(view==='detail') renderDetail();
+  else renderInstruction();
+  window.scrollTo(0,0);
+}
+function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ---------- INTAKE WIZARD ---------- */
+const STEPS = ['Basics','Triage','Routing','Strategic Alignment','Impact & Value','Feasibility','Risk & Safeguards','Review'];
+function stepBar(cur, fastEnd){
+  const steps = fastEnd ? STEPS.slice(0,3) : STEPS;
+  return '<div class="step-indicator">' + steps.map((s,i)=>
+    `<div class="${i<cur?'done':i===cur?'cur':''}">${i+1}. ${s}</div>`).join('') + '</div>';
+}
+function renderIntake(){
+  if(!draft) newDraft();
+  const m = $('main');
+  if(draft.step===0) return renderBasics(m);
+  if(draft.step===1) return renderTriage(m);
+  if(draft.step===2) return renderRouting(m);
+  if(draft.step>=3 && draft.step<=6) return renderEval(m, draft.step-3);
+  if(draft.step===7) return renderReview(m);
+}
+function renderBasics(m){
+  const b = draft.basics;
+  m.innerHTML = `
+    <h2>New Use Case <span class="accent">Intake</span></h2>
+    <p class="lead">Two minutes to register. The system routes your idea — fast track or full questionnaire — based on your answers.</p>
+    ${stepBar(0)}
+    <label class="fld">Your name</label>
+    <input type="text" id="f-submitter" value="${esc(b.submitter)}" placeholder="First Last">
+    <label class="fld">Department / function</label>
+    <select id="f-dept">${['<option value="">Select…</option>',...DEPTS.map(d=>`<option ${b.dept===d?'selected':''}>${d}</option>`)].join('')}</select>
+    <label class="fld">Use case title</label>
+    <input type="text" id="f-title" value="${esc(b.title)}" placeholder="Short, descriptive name">
+    <label class="fld">What are you trying to do? <span class="opt">(1–2 sentences: the task, who does it today, what AI would change)</span></label>
+    <textarea id="f-desc" placeholder="Example: Our team manually tags 300 assets a week. An AI tagger could cut this to minutes.">${esc(b.desc)}</textarea>
+    <div class="btnrow"><span></span><button class="primary" onclick="saveBasics()">Continue</button></div>`;
+}
+function saveBasics(){
+  const b = draft.basics;
+  b.submitter=$('f-submitter').value.trim(); b.dept=$('f-dept').value; b.title=$('f-title').value.trim(); b.desc=$('f-desc').value.trim();
+  if(!b.submitter||!b.dept||!b.title){ alert('Name, department, and title are required.'); return; }
+  draft.step=1; render();
+}
+function choiceHTML(list, sel, fn, multi){
+  return '<div class="choice-group">' + list.map(o=>{
+    const isSel = multi ? sel.includes(o.v) : sel===o.v;
+    return `<div class="choice ${multi?'multi':''} ${isSel?'sel':''}" onclick="${fn}('${o.v}')">
+      <div class="tick"></div><div><div>${o.t}</div>${o.d?`<div class="muted">${o.d}</div>`:''}</div></div>`;
+  }).join('') + '</div>';
+}
+function renderTriage(m){
+  const t = draft.triage;
+  m.innerHTML = `
+    <h2>Triage. <span class="accent">Route before you answer.</span></h2>
+    <p class="lead">Four quick questions determine whether this needs the full questionnaire.</p>
+    ${stepBar(1)}
+    <h3>1. Who benefits from this?</h3>
+    ${choiceHTML(TRIAGE.beneficiary, t.beneficiary, 'setBeneficiary')}
+    <h3>2. What kind of work is it?</h3>
+    ${choiceHTML(TRIAGE.workType, t.workType, 'setWorkType')}
+    <h3>3. Can you or your team build it with tools you already have?</h3>
+    ${choiceHTML(TRIAGE.buildPath, t.buildPath, 'setBuildPath')}
+    <h3>4. Does it touch any of these? <span class="muted" style="text-transform:none;">(select all that apply)</span></h3>
+    ${choiceHTML(TRIAGE.sensitivity, t.sensitivity, 'toggleSens', true)}
+    <div class="btnrow">
+      <button class="ghost" onclick="draft.step=0;render()">Back</button>
+      <button class="primary" onclick="finishTriage()">See routing</button>
+    </div>`;
+}
+function setBeneficiary(v){ draft.triage.beneficiary=v; render(); }
+function setWorkType(v){ draft.triage.workType=v; render(); }
+function setBuildPath(v){ draft.triage.buildPath=v; render(); }
+function toggleSens(v){
+  const s = draft.triage.sensitivity;
+  if(v==='none'){ draft.triage.sensitivity = s.includes('none')?[]:['none']; }
+  else{
+    const i=s.indexOf(v);
+    if(i>=0) s.splice(i,1); else s.push(v);
+    const n=s.indexOf('none'); if(n>=0) s.splice(n,1);
+  }
+  render();
+}
+function finishTriage(){
+  const t=draft.triage;
+  if(!t.beneficiary||!t.workType||!t.buildPath||t.sensitivity.length===0){ alert('Please answer all four triage questions.'); return; }
+  draft.step=2; render();
+}
+function renderRouting(m){
+  const r = routeOf(draft.triage);
+  const fast = r.route==='fast';
+  m.innerHTML = `
+    <h2>Routing. <span class="accent">${fast?'Fast track.':'Full questionnaire.'}</span></h2>
+    ${stepBar(2, fast)}
+    <div class="routing-box">
+      <h4>${fast?'No questionnaire needed':'This use case continues to the questionnaire'}</h4>
+      <p>${r.why}</p>
+    </div>
+    ${fast? `
+      <p class="lead">Your use case will be registered for visibility. Build it with your approved self-service tools — copilot agents, sanctioned automations — following enterprise AI usage guidelines. No approval gate applies.</p>
+      <div class="btnrow">
+        <button class="ghost" onclick="draft.step=1;render()">Back</button>
+        <button class="primary" onclick="submitFast()">Register &amp; finish</button>
+      </div>`
+    : `
+      <p class="lead">Nineteen short questions across four topics. Pick the statement closest to reality — estimates are fine, and "Not sure yet" is a valid answer. This is a first pass, not a business case.</p>
+      <div class="btnrow">
+        <button class="ghost" onclick="draft.step=1;render()">Back</button>
+        <button class="primary" onclick="draft.step=3;render()">Start questionnaire</button>
+      </div>`}`;
+}
+function submitFast(){
+  state.subs.push({ id:Date.now(), ts:new Date().toISOString(), route:'fast',
+    basics:draft.basics, triage:draft.triage, scores:null });
+  save(); newDraft();
+  go('mine');
+}
+/* questionnaire steps: 0=SA 1=BI 2=FR 3=RE */
+function renderEval(m, ci){
+  const cat = CATS[ci];
+  const crits = CRITERIA.filter(c=>c.cat===cat.id);
+  m.innerHTML = `
+    <h2>${cat.name}. <span class="accent">${['Does it advance the mission?','What value do we realize?','Can we actually do it?','Should we do it?'][ci]}</span></h2>
+    <p class="lead">${cat.exp}</p>
+    ${stepBar(3+ci)}
+    ${crits.map(c=>critHTML(c)).join('')}
+    ${cat.id==='RE'?'<p class="muted" style="margin-top:10px;">Note: in this section, higher = safer. A 5 means very little risk.</p>':''}
+    <div class="btnrow">
+      <button class="ghost" onclick="draft.step=${2+ci};render()">Back</button>
+      <button class="primary" onclick="nextEval(${ci})">Continue</button>
+    </div>`;
+}
+/* Full 0-5 scale, plain language, every option explained. 0 = Not sure / NA. */
+function critHTML(c){
+  return `<div class="crit">
+    <div class="cname">${c.name}</div>
+    <div class="cq">${c.q}</div>
+    <div class="anchors">${[0,1,2,3,4,5].map(v=>{
+      const sel = draft.scores[c.id]===v;
+      return `<div class="anchor ${sel?'sel':''}" onclick="setScore('${c.id}',${v})"><div class="num">${v===0?'?':v}</div><div class="txt">${c.a[v]}</div></div>`;
+    }).join('')}</div></div>`;
+}
+function setScore(id,v){ draft.scores[id]=v; render(); }
+function nextEval(ci){
+  const crits = CRITERIA.filter(c=>c.cat===CATS[ci].id);
+  const missing = crits.filter(c=> draft.scores[c.id]===undefined);
+  if(missing.length){ alert('Please answer every question: ' + missing.map(c=>c.name).join(', ')); return; }
+  draft.step = 3+ci+1; render();
+}
+function renderReview(m){
+  const un = zeroCount(draft.scores);
+  m.innerHTML = `
+    <h2>Review. <span class="accent">Check your answers before submitting.</span></h2>
+    ${stepBar(7)}
+    <h3>Submission</h3>
+    <table><tr><td style="width:160px;"><b>${esc(draft.basics.title)}</b></td><td>${esc(draft.basics.desc)||'<span class="muted">No description</span>'}</td></tr>
+    <tr><td>Submitter</td><td>${esc(draft.basics.submitter)} — ${esc(draft.basics.dept)}</td></tr>
+    <tr><td>Build path</td><td>${TRIAGE.buildPath.find(o=>o.v===draft.triage.buildPath)?.t||''}</td></tr></table>
+    ${un?`<div class="routing-box"><h4>⚑ ${un} answer${un>1?'s':''} marked "Not sure"</h4><p>No problem — the review team will reach out for a short follow-up conversation to fill in those answers, so your idea is assessed on accurate information rather than gaps. All your answers are saved with the submission.</p></div>`:''}
+    <h3>Your answers</h3>
+    ${CATS.map(c=>`
+      <h3 style="color:var(--orange);">${c.name}</h3>
+      <table>${CRITERIA.filter(cr=>cr.cat===c.id).map(cr=>{
+        const v = draft.scores[cr.id];
+        return `<tr><td style="width:260px;">${cr.name}</td><td>${v===0?'<span class="warn">Not sure — will follow up</span>':'<b>'+v+'</b> — '+cr.a[v]}</td></tr>`;
+      }).join('')}</table>`).join('')}
+    <p class="muted" style="margin-top:14px;">Your idea will be assessed by the review team against current company priorities. You'll see your full answer record under My Submissions.</p>
+    <div class="btnrow">
+      <button class="ghost" onclick="draft.step=6;render()">Back</button>
+      <button class="primary" onclick="submitFull()">Submit</button>
+    </div>`;
+}
+function submitFull(){
+  state.subs.push({ id:Date.now(), ts:new Date().toISOString(), route:'full',
+    basics:draft.basics, triage:draft.triage, scores:draft.scores });
+  save(); newDraft();
+  go('mine');
+}
+
+/* ---------- MY SUBMISSIONS ---------- */
+function renderMine(){
+  const m = $('main');
+  const subs = [...state.subs].sort((a,b)=>b.id-a.id);
+  m.innerHTML = `
+    <h2>My Submissions. <span class="accent">Everything you've registered, answers included.</span></h2>
+    <p class="lead">Use Export to send your submissions to the AI portfolio team — the file includes your answer to every question, so nothing is re-entered.</p>
+    <div class="toolbar">
+      <button class="small" onclick="exportJSON()">Export JSON (for the portfolio team)</button>
+      <button class="small" onclick="exportCSV()">Export CSV (my records)</button>
+      <span class="muted">${subs.length} submission${subs.length===1?'':'s'} &middot; stored in this browser</span>
+    </div>
+    ${subs.length? `
+    <table>
+      <tr><th>Use case</th><th>Dept</th><th>Route</th><th>Follow-ups</th><th>Submitted</th><th></th></tr>
+      ${subs.map(s=>{
+        const un = s.scores? zeroCount(s.scores):0;
+        return `<tr>
+        <td><b>${esc(s.basics.title)}</b><br><span class="muted">${esc(s.basics.submitter)}</span></td>
+        <td>${esc(s.basics.dept)}</td>
+        <td><span class="pill ${s.route==='fast'?'fast':'full'}">${s.route==='fast'?'Fast track':'Full questionnaire'}</span></td>
+        <td>${un?`<span class="warn">⚑ ${un} open</span>`:'<span class="muted">—</span>'}</td>
+        <td class="muted">${new Date(s.ts).toLocaleDateString()}</td>
+        <td style="white-space:nowrap;"><button class="small" onclick="openDetail(${s.id})">View</button> <button class="small" onclick="delSub(${s.id})">✕</button></td>
+      </tr>`;}).join('')}
+    </table>` : '<p class="muted" style="margin-top:20px;">Nothing yet. Register your first idea via New Intake.</p>'}
+    <div class="footer-note">Prototype: data lives in this browser only. Evaluation and prioritization happen in the review team's internal tool.</div>`;
+}
+function delSub(id){
+  if(!confirm('Remove this submission?')) return;
+  state.subs = state.subs.filter(s=>s.id!==id); save(); render();
+}
+function exportJSON(){
+  download('ai_intake_submissions.json', JSON.stringify(state.subs, null, 2), 'application/json');
+}
+function exportCSV(){
+  /* Answer record only — no scoring. One column per question. */
+  const cols = ['title','submitter','dept','description','route','beneficiary','workType','buildPath','sensitivity',
+    ...CRITERIA.map(c=>c.id+'_answer'),'not_sure_count','submitted_at'];
+  const rows = state.subs.map(s=> [s.basics.title, s.basics.submitter, s.basics.dept, s.basics.desc, s.route,
+      s.triage.beneficiary, s.triage.workType, s.triage.buildPath, s.triage.sensitivity.join('|'),
+      ...CRITERIA.map(c=> s.scores? (s.scores[c.id]??''):''),
+      s.scores? zeroCount(s.scores):'', s.ts]);
+  const csv = [cols.join(','), ...rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','))].join('\n');
+  download('ai_intake_submissions.csv', csv, 'text/csv');
+}
+function download(name, content, type){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content],{type})); a.download = name; a.click();
+}
+
+/* ---------- DETAIL (read-only) ---------- */
+function renderDetail(){
+  const m = $('main');
+  const s = state.subs.find(x=>x.id===detailId);
+  if(!s){ go('mine'); return; }
+  const tOpt = (list,v)=> TRIAGE[list].find(o=>o.v===v)?.t || v;
+  const un = s.scores? zeroCount(s.scores):0;
+  m.innerHTML = `
+    <h2>${esc(s.basics.title)} <span class="pill ${s.route==='fast'?'fast':'full'}">${s.route==='fast'?'fast track':'full questionnaire'}</span></h2>
+    <p class="lead">${esc(s.basics.desc)||''}</p>
+    <p class="muted">${esc(s.basics.submitter)} — ${esc(s.basics.dept)} · submitted ${new Date(s.ts).toLocaleDateString()}</p>
+    <h3>Triage answers</h3>
+    <table>
+      <tr><td style="width:220px;">Who benefits</td><td>${tOpt('beneficiary',s.triage.beneficiary)}</td></tr>
+      <tr><td>Kind of work</td><td>${tOpt('workType',s.triage.workType)}</td></tr>
+      <tr><td>Build capability</td><td>${tOpt('buildPath',s.triage.buildPath)}</td></tr>
+      <tr><td>Touches</td><td>${s.triage.sensitivity.map(v=>TRIAGE.sensitivity.find(o=>o.v===v)?.t||v).join(', ')}</td></tr>
+    </table>
+    ${s.scores? `
+    ${un?`<div class="routing-box"><h4>⚑ ${un} answer${un>1?'s':''} marked "Not sure"</h4><p>The review team will follow up on these to complete the assessment. Your original answers stay on record.</p></div>`:''}
+    <h3>Questionnaire answers</h3>
+    ${CATS.map(c=>`
+      <h3 style="color:var(--orange);">${c.name}</h3>
+      <table>${CRITERIA.filter(cr=>cr.cat===c.id).map(cr=>{
+        const v = s.scores[cr.id];
+        return `<tr><td style="width:260px;">${cr.name}</td><td>${v===0?'<span class="warn">Not sure — follow-up open</span>':'<b>'+v+'</b> — '+cr.a[v]}</td></tr>`;
+      }).join('')}</table>`).join('')}`:''}
+    <div class="btnrow"><button class="ghost" onclick="go('mine')">Back to My Submissions</button><span></span></div>`;
+}
+
+/* ---------- INSTRUCTION ---------- */
+function renderInstruction(){
+  $('main').innerHTML = `
+    <h2>Instruction. <span class="accent">Two minutes to register — the system does the routing.</span></h2>
+    <h3>What this is</h3>
+    <p class="lead">A single front door for AI ideas across every function — legal, marketing, sales, supply chain, anyone. You describe the idea; the system decides whether it needs the full questionnaire or can proceed as a self-service build.</p>
+    <h3>Who should submit</h3>
+    <p class="lead">Anyone with an AI use case — from "an assistant that drafts my meeting notes" to "a new system that predicts demand." No AI or technical background needed.</p>
+    <h3>How it works — 4 steps</h3>
+    <table>
+      <tr><td style="width:170px;"><b>1. Basics</b></td><td>Your name, department, and a 1–2 sentence description of what you're trying to do.</td></tr>
+      <tr><td><b>2. Triage</b></td><td>Four quick questions: who benefits, what kind of work it is, whether you can build it yourself, and what data or audiences it touches.</td></tr>
+      <tr><td><b>3. Routing</b></td><td><b>Fast track:</b> individual/team ideas you can build with approved tools get registered and you're done — no questionnaire.<br><b>Full questionnaire:</b> ideas needing IT or outside vendors, department-wide scope, or touching customer data / public content continue on.</td></tr>
+      <tr><td><b>4. Questionnaire</b></td><td>Nineteen questions if routed. Pick the statement closest to reality — estimates are fine. <b>"0 – Not sure" is always a valid answer.</b></td></tr>
+    </table>
+    <h3>About "Not sure" answers</h3>
+    <div class="routing-box"><h4>We will follow up — honestly answering "Not sure" beats guessing</h4>
+    <p>Items marked "Not sure" are flagged for a short follow-up conversation. The review team will complete those answers with you, so your idea is assessed on accurate information, not gaps. Your original answers are always kept on record.</p></div>
+    <h3>What happens after</h3>
+    <p class="lead">The AI portfolio team reviews and prioritizes all submissions against current company priorities, and follows up on any "Not sure" answers. Fast-track builds are logged for visibility only. You keep a full copy of everything you submitted under My Submissions.</p>
+    <h3>Good to know</h3>
+    <p class="lead">This prototype stores data in your browser. Use Export on the My Submissions tab to send your submissions to the portfolio team — exports include your answer to every question, so nothing is re-entered.</p>
+    <div class="footer-note">One front door. Clear routing. No idea lost.</div>`;
+}
+
+/* init */
+render();
+</script>
+</body>
+</html>
